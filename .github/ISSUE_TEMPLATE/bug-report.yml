@@ -1,0 +1,130 @@
+name: Bug Report
+description: Report a bug in the AI and Data Processing Platform
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Bug Report
+        Thank you for taking the time to report a bug. Please complete this form to help us address the issue quickly and effectively.
+        
+        **Before submitting:**
+        - Check if a similar issue already exists
+        - Ensure you're using the latest version
+        - Redact any sensitive information
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which component of the platform is affected by this bug?
+      options:
+        - AI Services - LLM Inference
+        - AI Services - Embedding
+        - AI Services - Multimodal
+        - Data Processing
+        - Databases
+        - Monitoring
+        - ML Infrastructure
+        - Global Configuration
+        - Deployment Scripts
+        - Other (please specify)
+      multiple: true
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version of the platform are you running?
+      placeholder: "1.2.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      description: What environment are you running the platform in?
+      options:
+        - Podman on Windows/WSL2
+        - Podman on Linux
+        - Docker
+        - Kubernetes
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug - what actually happened?
+      placeholder: A clear and concise description of the issue you encountered.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+      placeholder: A clear description of what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Go to '...'
+        2. Execute command '....'
+        3. Configure '....'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      description: Please copy and paste any relevant logs or error messages. This will be automatically formatted.
+      render: shell
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration files
+      description: Please provide relevant configuration files (redact sensitive information)
+      render: yaml
+      placeholder: |
+        # Example: Paste your docker-compose or podman-compose.yaml here
+        version: '3.8'
+        services:
+          ...
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you using?
+      placeholder: "Windows 11, Ubuntu 22.04, etc."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      description: By submitting this issue, you agree to follow our contribution guidelines
+      options:
+        - label: I've searched for similar bugs and didn't find any duplicates
+          required: true
+        - label: I've included all the information needed to reproduce this bug
+          required: true
+        - label: I've redacted sensitive information (API keys, credentials, etc.)
+          required: true
+

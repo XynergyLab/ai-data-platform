@@ -1,0 +1,124 @@
+name: Security Vulnerability Report
+description: For reporting security vulnerabilities (prefer private reporting)
+labels: ["security", "confidential"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # ⚠️ IMPORTANT SECURITY NOTICE ⚠️
+        
+        **DO NOT REPORT SECURITY VULNERABILITIES THROUGH PUBLIC GITHUB ISSUES!**
+        
+        Please use our private security reporting channels instead:
+        
+        1. **Preferred**: Use GitHub's [private vulnerability reporting](https://github.com/XynergyLab/ai-data-platform/security/advisories/new)
+        2. **Alternatively**: Email security@xynergylabs.com with "[AI-PLATFORM-SECURITY]" in the subject
+        
+        Please only use this issue template if you have been directed to do so by a project maintainer or if the vulnerability has already been publicly disclosed.
+        
+        For more information, please see our [Security Policy](../../SECURITY.md).
+
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      description: Please confirm you understand the appropriate disclosure process
+      options:
+        - label: This vulnerability is already public or I have been directed to submit it this way by a maintainer
+          required: true
+        - label: I have read the Security Policy and understand the proper disclosure process
+          required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which component is affected by this security vulnerability?
+      options:
+        - AI Services - LLM Inference
+        - AI Services - Embedding
+        - AI Services - Multimodal
+        - Data Processing
+        - Databases
+        - Monitoring
+        - ML Infrastructure
+        - Global Configuration
+        - Deployment Scripts
+        - Multiple Components
+        - Other (please specify)
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Affected Versions
+      description: Which versions are affected by this vulnerability?
+      placeholder: "1.x.x and earlier"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Estimated Severity
+      description: How would you rate the severity of this vulnerability?
+      options:
+        - Critical - Immediate system compromise, data breach
+        - High - Significant impact, privilege escalation
+        - Medium - Limited impact, partial data access
+        - Low - Minimal impact, information disclosure
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Vulnerability Description
+      description: Please provide a clear description of the security issue
+      placeholder: Describe the vulnerability, including its impact and potential exploitation.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Clear steps to reproduce the vulnerability
+      placeholder: |
+        1. Configure system with '...'
+        2. Execute command '....'
+        3. Observe security issue '....'
+    validations:
+      required: true
+
+  - type: textarea
+    id: poc
+    attributes:
+      label: Proof of Concept
+      description: If applicable, provide a proof of concept
+      render: shell
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Suggested Mitigation
+      description: If you have ideas on how to mitigate this issue, please share them
+      placeholder: Suggest ways to fix or mitigate the vulnerability.
+
+  - type: input
+    id: cve
+    attributes:
+      label: CVE ID
+      description: If a CVE has been assigned, please provide it
+      placeholder: "CVE-YYYY-XXXXX"
+
+  - type: checkboxes
+    id: disclosure
+    attributes:
+      label: Disclosure Preferences
+      options:
+        - label: I would like to be credited for discovering this vulnerability
+        - label: I have not and will not disclose this issue publicly until a fix is released
+          required: true
+

@@ -1,0 +1,56 @@
+---
+extends: default
+
+rules:
+  # Increase line length limit (lenient)
+  line-length:
+    max: 120
+    level: warning
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+  
+  # Be strict about indentation (strict)
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: true
+  
+  # Enforce document start
+  document-start:
+    present: true
+    level: warning
+  
+  # Trailing spaces are bad
+  trailing-spaces:
+    level: error
+  
+  # Empty lines at end of file
+  empty-lines:
+    max: 1
+    max-end: 1
+    level: error
+  
+  # Key ordering doesn't matter in compose files
+  key-ordering: disable
+  
+  # For Podman compose compatibility, allow some flexibility
+  truthy:
+    level: warning
+    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+  
+  # Comments formatting
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1
+  
+  # Allow commas in flow style
+  commas:
+    max-spaces-before: 0
+    min-spaces-after: 1
+    max-spaces-after: 1
+    level: error
+  
+  # Allow some duplicate keys for service definitions
+  duplicated-key:
+    level: warning
+

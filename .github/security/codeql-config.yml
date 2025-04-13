@@ -1,0 +1,30 @@
+name: "CodeQL Configuration"
+
+queries:
+  - uses: security-and-quality
+
+paths:
+  - ai-services
+  - data-processing
+  - monitoring
+  - databases
+  - ml-infrastructure
+  - '*.py'
+  - '*.js'
+  - '*.ps1'
+
+paths-ignore:
+  - '**/node_modules'
+  - '**/vendor'
+  - '**/tests'
+  - '**/*.test.js'
+  - '**/*.test.py'
+
+security-severity-overrides:
+  - level: high
+    patterns:
+      - security/command-injection
+      - security/sql-injection
+      - security/unsafe-yaml-load
+      - security/unsafe-deserialization
+

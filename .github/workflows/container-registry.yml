@@ -1,0 +1,166 @@
+name: Container Registry Publish
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    branches: [main, develop]
+    types:
+      - completed
+
+jobs:
+  container-security-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  build-and-push:
+    name: Build and Push Images
+    needs: container-security-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service: [
+          { path: 'ai-services/llm-inference', name: 'llm-inference' },
+          { path: 'ai-services/embedding-services', name: 'embedding-service' },
+          { path: 'ai-services/multimodal', name: 'multimodal-processor' },
+          { path: 'data-processing', name: 'data-processor' },
+          { path: 'monitoring', name: 'monitoring' },
+          { path: 'databases/vector-stores', name: 'vector-db' }
+        ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Get source branch
+        id: source-branch
+        run: |
+          if [[ "${{ github.event.workflow_run.head_branch }}" == "main" ]]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event.workflow_run.head_branch }}" == "develop" ]]; then
+            echo "tag=edge" >> $GITHUB_OUTPUT
+          else
+            echo "tag=pr-${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+          fi
+          echo "sha_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.service.name }}
+          tags: |
+            type=raw,value=${{ steps.source-branch.outputs.tag }}
+            type=raw,value=${{ steps.source-branch.outputs.sha_tag }}
+
+      - name: Check if Dockerfile exists
+        id: dockerfile_check
+        run: |
+          if [ -f "${{ matrix.service.path }}/Dockerfile" ]; then
+            echo "dockerfile_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "dockerfile_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and push container image
+        if: steps.dockerfile_check.outputs.dockerfile_exists == 'true'
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ matrix.service.path }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.service.name }}:buildcache
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository }}/${{ matrix.service.name }}:buildcache,mode=max
+
+      - name: Build and push from compose file
+        if: steps.dockerfile_check.outputs.dockerfile_exists == 'false'
+        run: |
+          if [ -f "${{ matrix.service.path }}/podman-compose.yaml" ]; then
+            cd ${{ matrix.service.path }}
+            # Extract first service name from compose file for building
+            SERVICE_NAME=$(grep -A 1 "services:" podman-compose.yaml | grep -v "services:" | awk '{print $1}' | tr -d ':')
+            if [ ! -z "$SERVICE_NAME" ]; then
+              # Build using docker-compose
+              docker-compose -f podman-compose.yaml build $SERVICE_NAME
+              # Tag and push manually
+              IMAGE_ID=$(docker images -q ${SERVICE_NAME})
+              if [ ! -z "$IMAGE_ID" ]; then
+                for tag in $(echo "${{ steps.meta.outputs.tags }}" | tr '\n' ' '); do
+                  docker tag $IMAGE_ID $tag
+                  docker push $tag
+                done
+              fi
+            fi
+          else
+            echo "No Dockerfile or podman-compose.yaml found in ${{ matrix.service.path }}"
+          fi
+
+  publish-manifest:
+    name: Publish Image Manifest
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Generate image manifest
+        run: |
+          echo "# AI Data Platform Container Images" > IMAGE_MANIFEST.md
+          echo "" >> IMAGE_MANIFEST.md
+          echo "| Service | Image URL | Branch | Last Update |" >> IMAGE_MANIFEST.md
+          echo "|---------|-----------|--------|-------------|" >> IMAGE_MANIFEST.md
+          
+          # Add entry for each image
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          DATE=$(date -u +"%Y-%m-%d %H:%M UTC")
+          
+          echo "| LLM Inference | ghcr.io/${{ github.repository }}/llm-inference:${BRANCH} | ${BRANCH} | ${DATE} |" >> IMAGE_MANIFEST.md
+          echo "| Embedding Service | ghcr.io/${{ github.repository }}/embedding-service:${BRANCH} | ${BRANCH} | ${DATE} |" >> IMAGE_MANIFEST.md
+          echo "| Multimodal Processor | ghcr.io/${{ github.repository }}/multimodal-processor:${BRANCH} | ${BRANCH} | ${DATE} |" >> IMAGE_MANIFEST.md
+          echo "| Data Processor | ghcr.io/${{ github.repository }}/data-processor:${BRANCH} | ${BRANCH} | ${DATE} |" >> IMAGE_MANIFEST.md
+          echo "| Monitoring | ghcr.io/${{ github.repository }}/monitoring:${BRANCH} | ${BRANCH} | ${DATE} |" >> IMAGE_MANIFEST.md
+          echo "| Vector DB | ghcr.io/${{ github.repository }}/vector-db:${BRANCH} | ${BRANCH} | ${DATE} |" >> IMAGE_MANIFEST.md
+          
+          # Save to artifacts
+          mkdir -p artifacts
+          cp IMAGE_MANIFEST.md artifacts/
+      
+      - name: Upload manifest artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: image-manifest
+          path: artifacts/IMAGE_MANIFEST.md
+

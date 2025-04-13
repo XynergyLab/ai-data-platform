@@ -1,0 +1,76 @@
+# Dependabot configuration file
+# See: https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+
+  # Maintain dependencies for Python
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Ignore dev dependencies
+    ignore:
+      - dependency-name: "pytest*"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
+
+  # Maintain dependencies for Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+
+  # Also check the AI services directory for Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/ai-services"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "ai-services"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+
+  # Also check the monitoring directory for Docker dependencies  
+  - package-ecosystem: "docker"
+    directory: "/monitoring"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+      - "monitoring"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+

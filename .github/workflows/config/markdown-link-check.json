@@ -1,0 +1,42 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^http://localhost"
+    },
+    {
+      "pattern": "^https://example.com"
+    },
+    {
+      "pattern": "^#"
+    }
+  ],
+  "replacementPatterns": [
+    {
+      "pattern": "^/",
+      "replacement": "{{BASEURL}}/"
+    },
+    {
+      "pattern": "^./",
+      "replacement": "{{BASEURL}}/"
+    },
+    {
+      "pattern": "^../",
+      "replacement": "{{BASEURL}}/../"
+    }
+  ],
+  "httpHeaders": [
+    {
+      "urls": ["https://github.com/", "https://api.github.com/"],
+      "headers": {
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36"
+      }
+    }
+  ],
+  "timeout": "20s",
+  "retryOn429": true,
+  "retryCount": 3,
+  "fallbackRetryDelay": "30s",
+  "aliveStatusCodes": [200, 206, 301, 302, 307, 308]
+}
+
