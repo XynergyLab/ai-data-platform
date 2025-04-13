@@ -1,0 +1,90 @@
+#!/bin/sh
+#
+# Pre-commit hook to ensure commits are signed with GPG
+# 
+# To use this hook:
+# 1. Copy this file to .git/hooks/pre-commit
+# 2. Make it executable: chmod +x .git/hooks/pre-commit
+
+# ANSI color codes for better visibility
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m' # No Color
+
+echo "${BLUE}${BOLD}Checking GPG signing configuration...${NC}"
+
+# Check if commit.gpgsign is enabled
+GPGSIGN=$(git config --get commit.gpgsign)
+if [ "$GPGSIGN" != "true" ]; then
+    echo "${RED}${BOLD}Error:${NC} GPG commit signing is not enabled."
+    echo "${YELLOW}To enable automatic commit signing, run:${NC}"
+    echo "  git config --global commit.gpgsign true"
+    echo ""
+    echo "${YELLOW}You can still continue by manually signing this commit:${NC}"
+    echo "  git commit -S -m \"Your commit message\""
+    echo ""
+    echo "${RED}Commit aborted. Please enable GPG signing and try again.${NC}"
+    exit 1
+fi
+
+# Check if a signing key is configured
+SIGNING_KEY=$(git config --get user.signingkey)
+if [ -z "$SIGNING_KEY" ]; then
+    echo "${RED}${BOLD}Error:${NC} No GPG signing key configured."
+    echo "${YELLOW}To set your GPG signing key, run:${NC}"
+    echo "  git config --global user.signingkey YOUR_KEY_ID"
+    echo ""
+    echo "${YELLOW}To find your key ID, run:${NC}"
+    echo "  gpg --list-secret-keys --keyid-format=long"
+    echo ""
+    echo "${YELLOW}Look for the part after 'sec rsa4096/XXXXXXXX' - that's your key ID.${NC}"
+    echo ""
+    echo "${RED}Commit aborted. Please configure your signing key and try again.${NC}"
+    exit 1
+fi
+
+# Check if the configured key is valid
+# This runs a GPG command to check if the key exists in the keyring
+gpg --list-keys "$SIGNING_KEY" >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "${RED}${BOLD}Error:${NC} The configured GPG key '$SIGNING_KEY' is not available."
+    echo "${YELLOW}Please check that:${NC}"
+    echo "  1. You have generated a GPG key"
+    echo "  2. The correct key ID is configured in Git"
+    echo "  3. The GPG key is in your keyring"
+    echo ""
+    echo "${YELLOW}For help with GPG key setup, see:${NC}"
+    echo "  docs/CONTRIBUTING.md#gpg-signing-requirements"
+    echo ""
+    echo "${RED}Commit aborted. Please fix your GPG key configuration and try again.${NC}"
+    exit 1
+fi
+
+# Verify the GPG program is set correctly if on Windows
+if [ "$(uname -s | grep -i 'MINGW\|MSYS\|CYGWIN')" ]; then
+    GPG_PROGRAM=$(git config --get gpg.program)
+    if [ -z "$GPG_PROGRAM" ]; then
+        echo "${YELLOW}Warning:${NC} gpg.program is not set, which may cause issues on Windows."
+        echo "${YELLOW}To set the GPG program path, run:${NC}"
+        echo "  git config --global gpg.program \"C:/Program Files (x86)/GnuPG/bin/gpg.exe\""
+        echo "  (Adjust the path to match your GPG installation)"
+        echo ""
+        # Continue with the commit since this is just a warning
+    elif [ ! -f "$GPG_PROGRAM" ]; then
+        echo "${YELLOW}Warning:${NC} The configured GPG program does not exist at: $GPG_PROGRAM"
+        echo "${YELLOW}Please check the path and update it if necessary:${NC}"
+        echo "  git config --global gpg.program \"C:/Program Files (x86)/GnuPG/bin/gpg.exe\""
+        echo "  (Adjust the path to match your GPG installation)"
+        echo ""
+        # Continue with the commit since this is just a warning
+    fi
+fi
+
+echo "${GREEN}${BOLD}GPG signing is properly configured.${NC}"
+echo "${GREEN}Key ID:${NC} $SIGNING_KEY"
+echo "${GREEN}Proceeding with commit...${NC}"
+exit 0
+
