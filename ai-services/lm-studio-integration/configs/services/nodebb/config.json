@@ -1,0 +1,70 @@
+
+{
+  "url": "http://localhost",
+  "secret": "your_nodebb_secret_key",
+  "database": "mongodb",
+  "mongo": {
+    "host": "mongodb",
+    "port": 27017,
+    "username": "aiuser",
+    "password": "your_secure_mongodb_password",
+    "database": "nodebb",
+    "uri": "mongodb://aiuser:your_secure_mongodb_password@mongodb:27017/nodebb"
+  },
+  "port": 4567,
+  "bcrypt_rounds": 12,
+  "upload_path": "/usr/src/nodebb/public/uploads",
+  "redis": {
+    "host": "redis",
+    "port": 6379,
+    "password": "your_redis_password",
+    "database": 0
+  },
+  "sessionKey": "express.sid",
+  "jobsDisabled": false,
+  "log_level": "info",
+  "theme": "nodebb-theme-persona",
+  "relative_path": "",
+  "ai_integration": {
+    "enabled": true,
+    "lm_studio_url": "http://lm-studio-agent:5000",
+    "content_moderation": true,
+    "ai_recommendations": true,
+    "auto_categorize": true,
+    "summarize_long_posts": true,
+    "tag_generation": true,
+    "sentiment_analysis": true,
+    "similar_content_detection": true
+  },
+  "plugins": {
+    "nodebb-plugin-markdown": true,
+    "nodebb-plugin-mentions": true,
+    "nodebb-plugin-emoji": true,
+    "nodebb-plugin-dbsearch": true,
+    "nodebb-plugin-composer-default": true,
+    "nodebb-plugin-file-upload": true,
+    "nodebb-plugin-user-invitations": true,
+    "nodebb-plugin-ai-assistant": true,
+    "nodebb-plugin-embeddings-search": true
+  },
+  "emailer": {
+    "host": "smtp.example.com",
+    "port": 587,
+    "secure": false,
+    "auth": {
+      "user": "noreply@example.com",
+      "pass": "your_email_password"
+    },
+    "from": "noreply@example.com"
+  },
+  "search": {
+    "provider": "meilisearch",
+    "meilisearch": {
+      "host": "meilisearch",
+      "port": 7700,
+      "apiKey": "your_secure_meilisearch_key",
+      "indexName": "nodebb"
+    }
+  }
+}
+

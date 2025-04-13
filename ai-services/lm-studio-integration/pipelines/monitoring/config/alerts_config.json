@@ -1,0 +1,103 @@
+﻿{
+    "alerts": {
+        "queue_alerts": {
+            "high_queue_size": {
+                "type": "threshold",
+                "metric": "queue_size",
+                "threshold": 1000,
+                "severity": "warning",
+                "labels": ["queue_name"],
+                "notification": {
+                    "channels": ["slack", "email"],
+                    "cooldown": 300
+                }
+            },
+            "long_wait_time": {
+                "type": "threshold",
+                "metric": "wait_time",
+                "threshold": 1800,
+                "severity": "warning",
+                "labels": ["queue_name"],
+                "notification": {
+                    "channels": ["slack"],
+                    "cooldown": 600
+                }
+            }
+        },
+        "system_alerts": {
+            "high_cpu_usage": {
+                "type": "threshold",
+                "metric": "cpu_usage",
+                "threshold": 90,
+                "severity": "critical",
+                "duration": 300,
+                "notification": {
+                    "channels": ["slack", "email", "pagerduty"],
+                    "cooldown": 900
+                }
+            },
+            "high_memory_usage": {
+                "type": "threshold",
+                "metric": "memory_usage",
+                "threshold": 85,
+                "severity": "critical",
+                "duration": 300,
+                "notification": {
+                    "channels": ["slack", "email"],
+                    "cooldown": 900
+                }
+            },
+            "disk_space_critical": {
+                "type": "threshold",
+                "metric": "disk_usage",
+                "threshold": 90,
+                "severity": "critical",
+                "labels": ["mount_point"],
+                "notification": {
+                    "channels": ["slack", "email", "pagerduty"],
+                    "cooldown": 3600
+                }
+            }
+        },
+        "pipeline_alerts": {
+            "high_error_rate": {
+                "type": "threshold",
+                "metric": "error_rate",
+                "threshold": 0.05,
+                "severity": "critical",
+                "duration": 300,
+                "notification": {
+                    "channels": ["slack", "email"],
+                    "cooldown": 900
+                }
+            },
+            "low_throughput": {
+                "type": "threshold",
+                "metric": "throughput",
+                "threshold": 1.0,
+                "severity": "warning",
+                "duration": 600,
+                "notification": {
+                    "channels": ["slack"],
+                    "cooldown": 1800
+                }
+            }
+        }
+    },
+    "notification_channels": {
+        "slack": {
+            "type": "slack",
+            "webhook_url": "{{SLACK_WEBHOOK_URL}}",
+            "channel": "#pipeline-alerts"
+        },
+        "email": {
+            "type": "email",
+            "from": "pipeline-alerts@example.com",
+            "to": ["ops-team@example.com"]
+        },
+        "pagerduty": {
+            "type": "pagerduty",
+            "service_key": "{{PAGERDUTY_SERVICE_KEY}}"
+        }
+    }
+}

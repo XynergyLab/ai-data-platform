@@ -1,0 +1,42 @@
+﻿{
+    "indexes": {
+        "documents": {
+            "primaryKey": "id",
+            "searchableAttributes": [
+                "title",
+                "file_name",
+                "summary",
+                "tags",
+                "categories",
+                "dewey_decimal"
+            ],
+            "filterableAttributes": [
+                "mime_type",
+                "extension",
+                "dewey_decimal",
+                "language",
+                "file_size",
+                "created_at"
+            ],
+            "sortableAttributes": [
+                "created_at",
+                "file_size"
+            ],
+            "rankingRules": [
+                "words",
+                "typo",
+                "proximity",
+                "attribute",
+                "sort",
+                "exactness"
+            ],
+            "distinctAttribute": "id"
+        }
+    },
+    "settings": {
+        "minWordSizeForTypos": 3,
+        "pagination": {
+            "maxTotalHits": 1000
+        }
+    }
+}

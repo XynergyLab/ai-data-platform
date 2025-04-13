@@ -1,0 +1,20 @@
+﻿{
+    "template": {
+        "blocks": [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": ":warning: Pipeline Alert: {alert_name}"
+                }
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*Severity:* {severity}\n*Threshold:* {threshold}\n*Current Value:* {current_value}\n*Time:* {timestamp}"
+                }
+            }
+        ]
+    }
+}

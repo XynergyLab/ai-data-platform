@@ -1,0 +1,128 @@
+## Traefik Dynamic Configuration
+## Model Gateway Routing Rules
+
+http:
+  routers:
+    # Triton Inference Server Router
+    triton-router:
+      entryPoints:
+        - web
+      rule: "PathPrefix(`/v2`)"
+      service: triton-service
+      middlewares:
+        - triton-stripprefix
+        - model-ratelimit
+      priority: 100
+    
+    # TensorFlow Serving Router
+    tensorflow-router:
+      entryPoints:
+        - web
+      rule: "PathPrefix(`/v1/models`)"
+      service: tensorflow-service
+      middlewares:
+        - tensorflow-stripprefix
+        - model-ratelimit
+      priority: 90
+    
+    # TorchServe Router
+    torchserve-router:
+      entryPoints:
+        - web
+      rule: "PathPrefix(`/predictions`)"
+      service: torchserve-service
+      middlewares:
+        - model-ratelimit
+      priority: 80
+    
+    # Model API Documentation
+    model-api-docs:
+      entryPoints:
+        - web
+      rule: "PathPrefix(`/api/docs`)"
+      service: api-docs-service
+      middlewares:
+        - api-docs-stripprefix
+      priority: 110
+
+  services:
+    # Triton Service definition with health checks
+    triton-service:
+      loadBalancer:
+        servers:
+          - url: "http://ml-triton-inference:8000"
+        healthCheck:
+          path: /v2/health/ready
+          interval: "30s"
+          timeout: "5s"
+          followRedirects: true
+        sticky:
+          cookie:
+            name: triton_affinity
+            secure: true
+    
+    # TensorFlow Serving with health checks
+    tensorflow-service:
+      loadBalancer:
+        servers:
+          - url: "http://ml-tf-serving:8501"
+        healthCheck:
+          path: /v1/models/default
+          interval: "30s"
+          timeout: "5s"
+        passHostHeader: true
+    
+    # TorchServe with health checks
+    torchserve-service:
+      loadBalancer:
+        servers:
+          - url: "http://ml-torchserve:8080"
+        healthCheck:
+          path: /ping
+          interval: "30s"
+          timeout: "5s"
+    
+    # API Documentation Service
+    api-docs-service:
+      loadBalancer:
+        servers:
+          - url: "http://model-gateway-docs:8080"
+
+  middlewares:
+    # Middlewares for path manipulation
+    triton-stripprefix:
+      stripPrefix:
+        prefixes:
+          - "/v2"
+        forceSlash: true
+    
+    tensorflow-stripprefix:
+      stripPrefix:
+        prefixes:
+          - "/v1"
+        forceSlash: false
+    
+    api-docs-stripprefix:
+      stripPrefix:
+        prefixes:
+          - "/api/docs"
+    
+    # Rate limiting middleware for all model endpoints
+    model-ratelimit:
+      rateLimit:
+        average: 100
+        burst: 50
+        period: 1s
+    
+    # Request buffering for large model inputs
+    request-buffer:
+      buffering:
+        maxRequestBodyBytes: 10485760  # 10MB
+        memRequestBodyBytes: 2097152   # 2MB
+
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      sniStrict: true
+

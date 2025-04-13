@@ -1,0 +1,111 @@
+
+{
+  "library": {
+    "path": "/library",
+    "cache_path": "/tmp/unmanic"
+  },
+  "server": {
+    "listen_address": "0.0.0.0",
+    "listen_port": 8888,
+    "api_key": "your_unmanic_api_key",
+    "log_level": "info"
+  },
+  "ai_processing": {
+    "enabled": true,
+    "lm_studio_url": "http://lm-studio-agent:5000",
+    "analyze_media": true,
+    "extract_metadata": true,
+    "generate_thumbnails": true,
+    "enable_preview": true
+  },
+  "workers": {
+    "worker_count": 2,
+    "worker_timeout": 300,
+    "auto_reschedule_failed_tasks": true,
+    "keep_completed_task_history": true,
+    "keep_completed_task_history_days": 30
+  },
+  "scheduling": {
+    "schedule_type": "interval",
+    "schedule_interval_seconds": 3600,
+    "scan_mode": "interval",
+    "scan_interval_seconds": 1800,
+    "scan_complete_interval_seconds": 86400
+  },
+  "handlers": {
+    "enable_video_handlers": true,
+    "enable_audio_handlers": true,
+    "enable_image_handlers": true,
+    "enable_subtitle_handlers": true
+  },
+  "video_processing": {
+    "video_codec": "hevc",
+    "video_quality_preset": "medium",
+    "retain_minimum_resolution": true,
+    "minimum_resolution": "720p",
+    "hardware_acceleration": "auto",
+    "hdr_support": true
+  },
+  "audio_processing": {
+    "audio_codec": "aac",
+    "audio_channels": 2,
+    "audio_bitrate": "192k",
+    "retain_commentary_tracks": true,
+    "auto_language_detect": true
+  },
+  "container_formats": {
+    "enable_standard_formats": true,
+    "video_containers": ["mkv", "mp4"],
+    "audio_containers": ["mp3", "m4a"],
+    "image_containers": ["jpg", "png"]
+  },
+  "plugins": {
+    "enable_all_plugins": false,
+    "enabled_plugins": [
+      "unmanic.plugin.video_transcoder",
+      "unmanic.plugin.audio_transcoder",
+      "unmanic.plugin.image_optimizer",
+      "unmanic.plugin.subtitle_downloader",
+      "unmanic.plugin.ai_metadata_analyzer",
+      "unmanic.plugin.scene_detection",
+      "unmanic.plugin.tag_generator"
+    ]
+  },
+  "ai_metadata": {
+    "enabled": true,
+    "extract_media_info": true,
+    "analyze_video_content": true,
+    "analyze_audio_content": true,
+    "analyze_images": true,
+    "generate_descriptions": true,
+    "tag_with_dewey": true,
+    "detect_explicit_content": true,
+    "extract_people": true,
+    "extract_locations": true,
+    "extract_objects": true,
+    "extract_emotions": true,
+    "extract_topics": true
+  },
+  "integrations": {
+    "meilisearch": {
+      "enabled": true,
+      "url": "http://meilisearch:7700",
+      "api_key": "your_secure_meilisearch_key",
+      "index_name": "media_catalog"
+    },
+    "neo4j": {
+      "enabled": true,
+      "url": "bolt://neo4j:7687",
+      "username": "neo4j",
+      "password": "your_secure_neo4j_password"
+    },
+    "minio": {
+      "enabled": true,
+      "url": "http://minio:9000",
+      "access_key": "aiuser",
+      "secret_key": "your_secure_minio_password",
+      "bucket": "media-processed"
+    }
+  }
+}
+

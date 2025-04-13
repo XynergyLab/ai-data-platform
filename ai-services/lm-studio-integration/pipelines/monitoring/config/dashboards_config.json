@@ -1,0 +1,115 @@
+﻿{
+    "dashboards": {
+        "pipeline_overview": {
+            "title": "Pipeline Overview",
+            "refresh": "10s",
+            "time_range": {
+                "from": "now-6h",
+                "to": "now"
+            },
+            "panels": {
+                "queue_status": {
+                    "title": "Queue Status",
+                    "type": "graph",
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 0
+                    },
+                    "targets": [
+                        {
+                            "metric": "queue_size",
+                            "aggregation": "max",
+                            "groupBy": ["queue_name"]
+                        }
+                    ]
+                },
+                "processing_rates": {
+                    "title": "Processing Rates",
+                    "type": "graph",
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 0
+                    },
+                    "targets": [
+                        {
+                            "metric": "processing_rate",
+                            "aggregation": "mean",
+                            "groupBy": ["processor_type"]
+                        }
+                    ]
+                },
+                "system_resources": {
+                    "title": "System Resources",
+                    "type": "stat",
+                    "gridPos": {
+                        "h": 4,
+                        "w": 24,
+                        "x": 0,
+                        "y": 8
+                    },
+                    "targets": [
+                        {
+                            "metric": "cpu_usage",
+                            "aggregation": "max"
+                        },
+                        {
+                            "metric": "memory_usage",
+                            "aggregation": "max"
+                        },
+                        {
+                            "metric": "disk_usage",
+                            "aggregation": "max"
+                        }
+                    ]
+                }
+            }
+        },
+        "pipeline_details": {
+            "title": "Pipeline Details",
+            "refresh": "30s",
+            "time_range": {
+                "from": "now-24h",
+                "to": "now"
+            },
+            "panels": {
+                "processing_time": {
+                    "title": "Processing Time Distribution",
+                    "type": "heatmap",
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 0,
+                        "y": 0
+                    },
+                    "targets": [
+                        {
+                            "metric": "processing_time",
+                            "aggregation": "histogram"
+                        }
+                    ]
+                },
+                "error_rates": {
+                    "title": "Error Rates",
+                    "type": "graph",
+                    "gridPos": {
+                        "h": 8,
+                        "w": 12,
+                        "x": 12,
+                        "y": 0
+                    },
+                    "targets": [
+                        {
+                            "metric": "error_rate",
+                            "aggregation": "mean",
+                            "groupBy": ["error_type"]
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}

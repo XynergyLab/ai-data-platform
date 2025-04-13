@@ -1,0 +1,197 @@
+﻿{
+    "collectors": {
+        "queue": {
+            "enabled": true,
+            "interval": 30,
+            "metrics": [
+                {
+                    "name": "queue_size",
+                    "type": "gauge",
+                    "description": "Current size of processing queues",
+                    "labels": ["queue_name", "priority"]
+                },
+                {
+                    "name": "processing_rate",
+                    "type": "gauge",
+                    "description": "Items processed per minute",
+                    "labels": ["queue_name", "priority"]
+                },
+                {
+                    "name": "wait_time",
+                    "type": "histogram",
+                    "description": "Time items spend in queue",
+                    "labels": ["queue_name", "priority"],
+                    "buckets": [30, 60, 300, 600, 1800, 3600]
+                }
+            ],
+            "queues": {
+                "ingestion": {
+                    "high-priority": "E:/Podman/Auto_Naming/high-priority",
+                    "medium-priority": "E:/Podman/Auto_Naming/medium-priority",
+                    "low-priority": "E:/Podman/Auto_Naming/low-priority"
+                },
+                "processing": {
+                    "staging": "E:/Podman/Auto_Naming/staging",
+                    "batch-processing": "E:/Podman/Auto_Naming/batch-processing",
+                    "streaming": "E:/Podman/Auto_Naming/streaming"
+                }
+            }
+        },
+        "system": {
+            "enabled": true,
+            "interval": 60,
+            "metrics": [
+                {
+                    "name": "cpu_usage",
+                    "type": "gauge",
+                    "description": "CPU usage percentage",
+                    "labels": ["cpu_type"]
+                },
+                {
+                    "name": "memory_usage",
+                    "type": "gauge",
+                    "description": "Memory usage in bytes",
+                    "labels": ["memory_type"]
+                },
+                {
+                    "name": "disk_usage",
+                    "type": "gauge",
+                    "description": "Disk usage percentage",
+                    "labels": ["mount_point"]
+                }
+            ]
+        },
+        "pipeline": {
+            "enabled": true,
+            "interval": 30,
+            "metrics": [
+                {
+                    "name": "processing_time",
+                    "type": "histogram",
+                    "description": "Time taken to process items",
+                    "labels": ["processor_type", "file_type"],
+                    "buckets": [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+                },
+                {
+                    "name": "success_rate",
+                    "type": "gauge",
+                    "description": "Processing success rate",
+                    "labels": ["processor_type"]
+                },
+                {
+                    "name": "error_rate",
+                    "type": "gauge",
+                    "description": "Processing error rate",
+                    "labels": ["processor_type", "error_type"]
+                }
+            ]
+        }
+    },
+    "alerts": {
+        "queue_alerts": {
+            "high_queue_size": {
+                "type": "threshold",
+                "metric": "queue_size",
+                "threshold": 1000,
+                "comparison": "greater",
+                "severity": "warning",
+                "duration": 300,
+                "notification": {
+                    "channels": ["slack", "email"],
+                    "cooldown": 1800
+                }
+            },
+            "long_wait_time": {
+                "type": "threshold",
+                "metric": "wait_time",
+                "threshold": 3600,
+                "comparison": "greater",
+                "severity": "critical",
+                "notification": {
+                    "channels": ["slack", "email", "pagerduty"],
+                    "cooldown": 900
+                }
+            }
+        },
+        "system_alerts": {
+            "high_cpu_usage": {
+                "type": "threshold",
+                "metric": "cpu_usage",
+                "threshold": 90,
+                "comparison": "greater",
+                "duration": 300,
+                "severity": "warning",
+                "notification": {
+                    "channels": ["slack"],
+                    "cooldown": 1800
+                }
+            },
+            "high_memory_usage": {
+                "type": "threshold",
+                "metric": "memory_usage",
+                "threshold": 90,
+                "comparison": "greater",
+                "duration": 300,
+                "severity": "warning",
+                "notification": {
+                    "channels": ["slack"],
+                    "cooldown": 1800
+                }
+            }
+        },
+        "pipeline_alerts": {
+            "low_success_rate": {
+                "type": "threshold",
+                "metric": "success_rate",
+                "threshold": 95,
+                "comparison": "less",
+                "duration": 600,
+                "severity": "critical",
+                "notification": {
+                    "channels": ["slack", "email", "pagerduty"],
+                    "cooldown": 900
+                }
+            },
+            "high_error_rate": {
+                "type": "threshold",
+                "metric": "error_rate",
+                "threshold": 5,
+                "comparison": "greater",
+                "duration": 300,
+                "severity": "critical",
+                "notification": {
+                    "channels": ["slack", "email", "pagerduty"],
+                    "cooldown": 900
+                }
+            }
+        },
+        "notification_channels": {
+            "slack": {
+                "type": "slack",
+                "webhook_url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+                "channel": "#monitoring"
+            },
+            "email": {
+                "type": "email",
+                "from": "monitoring@yourdomain.com",
+                "to": ["admin@yourdomain.com"]
+            },
+            "pagerduty": {
+                "type": "pagerduty",
+                "service_key": "YOUR_PAGERDUTY_SERVICE_KEY"
+            }
+        }
+    },
+    "state_management": {
+        "default_manager": "sqlite",
+        "sqlite": {
+            "db_path": "E:/Podman/Auto_Naming/data/monitoring.db",
+            "backup_path": "E:/Podman/Auto_Naming/data/backups",
+            "backup_interval": 86400,
+            "max_history_days": 30,
+            "max_daily_backups": 7,
+            "max_weekly_backups": 4,
+            "max_monthly_backups": 12
+        }
+    }
+}

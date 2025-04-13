@@ -1,0 +1,187 @@
+# Prometheus ML Infrastructure Scrape Configurations
+
+# Model Serving Infrastructure Scrape Targets
+- job_name: 'triton_inference_server'
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-triton-inference:8002']
+      labels:
+        service: 'model-inference'
+        component: 'triton'
+        environment: 'production'
+
+- job_name: 'tensorflow_serving'
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: '/monitoring/prometheus/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-tf-serving:8501']
+      labels:
+        service: 'model-inference'
+        component: 'tensorflow'
+        environment: 'production'
+
+- job_name: 'torchserve_metrics'
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-torchserve:8082']
+      labels:
+        service: 'model-inference'
+        component: 'torchserve'
+        environment: 'production'
+
+- job_name: 'model_gateway'
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-model-gateway:8080']
+      labels:
+        service: 'model-inference'
+        component: 'gateway'
+        environment: 'production'
+
+- job_name: 'model_metrics_exporter'
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-metrics-exporter:9091']
+      labels:
+        service: 'model-inference'
+        component: 'metrics-exporter'
+        environment: 'production'
+
+# Training Cluster Infrastructure Scrape Targets
+- job_name: 'training_metrics_exporter'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-training-metrics:9091']
+      labels:
+        service: 'model-training'
+        component: 'metrics-exporter'
+        environment: 'production'
+
+- job_name: 'pytorch_master'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-pytorch-master:8008']
+      labels:
+        service: 'model-training'
+        component: 'pytorch-master'
+        environment: 'production'
+
+- job_name: 'pytorch_workers'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-pytorch-worker-1:8008', 'ml-pytorch-worker-2:8008']
+      labels:
+        service: 'model-training'
+        component: 'pytorch-worker'
+        environment: 'production'
+
+- job_name: 'ray_cluster'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-ray-head:8080']
+      labels:
+        service: 'model-training'
+        component: 'ray-cluster'
+        environment: 'production'
+
+# ML Pipeline Infrastructure Scrape Targets
+- job_name: 'mlflow'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-mlflow:5000']
+      labels:
+        service: 'ml-pipeline'
+        component: 'experiment-tracking'
+        environment: 'production'
+
+- job_name: 'kubeflow_pipelines'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-kubeflow-api:8888']
+      labels:
+        service: 'ml-pipeline'
+        component: 'pipeline-orchestration'
+        environment: 'production'
+
+- job_name: 'airflow'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-airflow-webserver:8080']
+      labels:
+        service: 'ml-pipeline'
+        component: 'workflow-orchestration'
+        environment: 'production'
+
+# GPU Metrics
+- job_name: 'nvidia_gpu_metrics'
+  scrape_interval: 10s
+  scrape_timeout: 5s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['monitoring-node-exporter:9100']
+      labels:
+        service: 'hardware'
+        component: 'gpu'
+        environment: 'production'
+
+# Storage and Vector Database Metrics
+- job_name: 'minio_metrics'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/minio/v2/metrics/cluster'
+  scheme: 'http'
+  static_configs:
+    - targets: ['ml-minio:9000']
+      labels:
+        service: 'storage'
+        component: 'object-storage'
+        environment: 'production'
+
+- job_name: 'vector_database_metrics'
+  scrape_interval: 30s
+  scrape_timeout: 15s
+  metrics_path: '/metrics'
+  scheme: 'http'
+  static_configs:
+    - targets: ['vector-store-milvus:9091', 'vector-store-qdrant:6333']
+      labels:
+        service: 'database'
+        component: 'vector-db'
+        environment: 'production'
+

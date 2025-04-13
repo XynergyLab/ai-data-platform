@@ -1,0 +1,146 @@
+version: '3.9'
+
+services:
+  triton-inference-server:
+    image: nvcr.io/nvidia/tritonserver:23.10-py3
+    container_name: ml-triton-inference
+    ports:
+      - "8000:8000"  # HTTP endpoint
+      - "8001:8001"  # gRPC endpoint
+      - "8002:8002"  # Metrics endpoint
+    volumes:
+      - ${PWD}/ml-infrastructure/model-serving/models:/models
+      - ${PWD}/ml-infrastructure/model-serving/config:/config
+      - /mnt/deeparchive/models:/served_models:ro
+    environment:
+      - MODEL_REPOSITORY=/models
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    command: ["tritonserver", "--model-repository=/models", "--strict-model-config=false", "--allow-metrics=true"]
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: '4.0'
+    networks:
+      - ml_network
+      - global_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v2/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  tensorflow-serving:
+    image: tensorflow/serving:latest
+    container_name: ml-tf-serving
+    ports:
+      - "8501:8501"  # REST API
+      - "8500:8500"  # gRPC API
+    volumes:
+      - ${PWD}/ml-infrastructure/model-serving/models/tensorflow:/models
+      - ${PWD}/ml-infrastructure/model-serving/config/tensorflow:/config
+    environment:
+      - MODEL_NAME=default
+      - MODEL_BASE_PATH=/models
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '2.0'
+    networks:
+      - ml_network
+      - global_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/v1/models/default"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  torchserve:
+    image: pytorch/torchserve:latest
+    container_name: ml-torchserve
+    ports:
+      - "8080:8080"  # Inference API
+      - "8081:8081"  # Management API
+      - "8082:8082"  # Metrics API
+    volumes:
+      - ${PWD}/ml-infrastructure/model-serving/models/torch:/home/model-server/model-store
+      - ${PWD}/ml-infrastructure/model-serving/config/torch:/home/model-server/config
+    environment:
+      - TS_CONFIG_FILE=/home/model-server/config/config.properties
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '2.0'
+    networks:
+      - ml_network
+      - global_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  model-gateway:
+    image: traefik:v2.10
+    container_name: ml-model-gateway
+    ports:
+      - "8888:80"  # API gateway port
+    volumes:
+      - ${PWD}/ml-infrastructure/model-serving/config/traefik:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --api.insecure=false
+      - --providers.file.directory=/etc/traefik
+      - --providers.file.watch=true
+      - --entrypoints.web.address=:80
+      - --metrics.prometheus=true
+      - --metrics.prometheus.buckets=0.1,0.3,0.5,0.7,1.0,2.0,5.0
+    networks:
+      - ml_network
+      - global_network
+
+  model-metrics-exporter:
+    image: prom/pushgateway:latest
+    container_name: ml-metrics-exporter
+    ports:
+      - "9091:9091"
+    networks:
+      - ml_network
+      - monitoring_network
+    volumes:
+      - model_metrics_data:/metrics
+    restart: unless-stopped
+
+  model-dashboard:
+    image: grafana/grafana:latest
+    container_name: ml-dashboard
+    depends_on:
+      - model-metrics-exporter
+    ports:
+      - "3100:3000"
+    volumes:
+      - ${PWD}/monitoring/grafana/dashboards/ml:/var/lib/grafana/dashboards/ml
+      - ${PWD}/ml-infrastructure/model-serving/config/grafana:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    networks:
+      - ml_network
+      - monitoring_network
+
+volumes:
+  model_metrics_data:
+    driver: local
+
+networks:
+  ml_network:
+    name: model_serving_network
+    driver: bridge
+  global_network:
+    external: true
+  monitoring_network:
+    external: true
+

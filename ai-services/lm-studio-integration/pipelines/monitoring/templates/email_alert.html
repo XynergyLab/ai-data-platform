@@ -1,0 +1,19 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .alert { padding: 20px; background-color: #f44336; color: white; }
+        .warning { padding: 20px; background-color: #ff9800; color: white; }
+    </style>
+</head>
+<body>
+    <div class="{severity}">
+        <h2>Pipeline Alert: {alert_name}</h2>
+        <p><strong>Severity:</strong> {severity}</p>
+        <p><strong>Threshold:</strong> {threshold}</p>
+        <p><strong>Current Value:</strong> {current_value}</p>
+        <p><strong>Time:</strong> {timestamp}</p>
+    </div>
+</body>
+</html>

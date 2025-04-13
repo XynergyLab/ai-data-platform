@@ -1,0 +1,55 @@
+
+{
+  "paperless": {
+    "url": "http://paperless-ngx:8000",
+    "token": "your_paperless_token"
+  },
+  "ai": {
+    "provider": "local",
+    "local_endpoint": "http://lm-studio-agent:5000",
+    "fallback_provider": "openai",
+    "openai_api_key": "your_openai_api_key",
+    "openai_model": "gpt-4",
+    "max_tokens": 1024,
+    "temperature": 0.1
+  },
+  "settings": {
+    "processing_interval_minutes": 5,
+    "batch_size": 10,
+    "max_retries": 3,
+    "enable_logging": true,
+    "log_level": "info",
+    "timeout_seconds": 60
+  },
+  "features": {
+    "generate_tags": true,
+    "extract_dates": true,
+    "extract_correspondents": true,
+    "generate_title": true,
+    "summarize_content": true,
+    "extract_metadata": true,
+    "categorize_documents": true
+  },
+  "document_types": [
+    "invoice",
+    "receipt",
+    "contract",
+    "letter",
+    "report",
+    "form",
+    "legal",
+    "personal",
+    "medical",
+    "financial",
+    "academic",
+    "other"
+  ],
+  "custom_prompts": {
+    "generate_tags": "Generate 3-7 relevant tags for this document: {text}",
+    "extract_correspondents": "Extract the correspondent (sender or recipient) from this document: {text}",
+    "generate_title": "Create a concise, descriptive title for this document, max 100 characters: {text}",
+    "summarize_content": "Provide a short summary of this document in 2-3 sentences: {text}",
+    "categorize_documents": "Categorize this document into one of these types: {document_types}. Document: {text}"
+  }
+}
+

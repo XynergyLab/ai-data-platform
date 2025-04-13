@@ -1,0 +1,344 @@
+version: '3.9'
+
+services:
+  # MLflow Tracking Server
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: ml-mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=s3://mlflow/
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/mlflow:/mlflow
+    depends_on:
+      - minio
+    networks:
+      - ml_training_network
+      - global_network
+      - monitoring_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  # MinIO for artifact storage
+  minio:
+    image: minio/minio:latest
+    container_name: ml-minio
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/artifacts:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - ml_training_network
+    restart: unless-stopped
+
+  # Kubeflow Pipelines
+  kubeflow-pipelines-api:
+    image: gcr.io/ml-pipeline/api-server:1.8.5
+    container_name: ml-kubeflow-api
+    ports:
+      - "8888:8888"
+    environment:
+      - MINIO_SERVICE_SERVICE_HOST=minio
+      - MINIO_SERVICE_SERVICE_PORT=9000
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_PORT=3306
+      - POD_NAMESPACE=default
+      - DEFAULTPIPELINERUNNERSERVICEACCOUNT=pipeline-runner
+    depends_on:
+      - mysql
+      - minio
+    networks:
+      - ml_training_network
+      - global_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  kubeflow-pipelines-persistence:
+    image: gcr.io/ml-pipeline/persistenceagent:1.8.5
+    container_name: ml-kubeflow-persistence
+    environment:
+      - NAMESPACE=default
+      - MYSQL_SERVICE_HOST=mysql
+      - MYSQL_SERVICE_PORT=3306
+    depends_on:
+      - mysql
+      - kubeflow-pipelines-api
+    networks:
+      - ml_training_network
+    restart: unless-stopped
+
+  kubeflow-pipelines-scheduledworkflow:
+    image: gcr.io/ml-pipeline/scheduledworkflow:1.8.5
+    container_name: ml-kubeflow-scheduler
+    environment:
+      - NAMESPACE=default
+    depends_on:
+      - kubeflow-pipelines-api
+    networks:
+      - ml_training_network
+    restart: unless-stopped
+
+  kubeflow-pipelines-ui:
+    image: gcr.io/ml-pipeline/frontend:1.8.5
+    container_name: ml-kubeflow-ui
+    ports:
+      - "8889:3000"
+    environment:
+      - MINIO_NAMESPACE=default
+      - MINIO_HOST=minio
+      - MINIO_PORT=9000
+      - ALLOW_CUSTOM_VISUALIZATIONS=true
+      - API_SERVER_ADDRESS=ml-kubeflow-api:8888
+    depends_on:
+      - kubeflow-pipelines-api
+      - minio
+    networks:
+      - ml_training_network
+      - global_network
+    restart: unless-stopped
+
+  # MySQL Database for Kubeflow & Airflow
+  mysql:
+    image: mysql:8.0
+    container_name: ml-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=mlpipeline
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/mysql:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - ml_training_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Airflow for Orchestration
+  airflow-webserver:
+    image: apache/airflow:2.7.0
+    container_name: ml-airflow-webserver
+    command: webserver
+    ports:
+      - "8080:8080"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=mysql+pymysql://root:password@mysql:3306/airflow
+      - AIRFLOW__CORE__FERNET_KEY=UKMzEm3yIuFYEq1y3-2FxPNWSVwRASpahmQ9kQfEr-E=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__LOGGING_LEVEL=INFO
+      - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/airflow/dags:/opt/airflow/dags
+      - ${PWD}/ml-infrastructure/training-clusters/airflow/logs:/opt/airflow/logs
+      - ${PWD}/ml-infrastructure/training-clusters/airflow/plugins:/opt/airflow/plugins
+      - ${PWD}/ml-infrastructure/training-clusters/airflow/airflow.cfg:/opt/airflow/airflow.cfg
+    depends_on:
+      - mysql
+    networks:
+      - ml_training_network
+      - global_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  airflow-scheduler:
+    image: apache/airflow:2.7.0
+    container_name: ml-airflow-scheduler
+    command: scheduler
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=mysql+pymysql://root:password@mysql:3306/airflow
+      - AIRFLOW__CORE__FERNET_KEY=UKMzEm3yIuFYEq1y3-2FxPNWSVwRASpahmQ9kQfEr-E=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__LOGGING_LEVEL=INFO
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/airflow/dags:/opt/airflow/dags
+      - ${PWD}/ml-infrastructure/training-clusters/airflow/logs:/opt/airflow/logs
+      - ${PWD}/ml-infrastructure/training-clusters/airflow/plugins:/opt/airflow/plugins
+      - ${PWD}/ml-infrastructure/training-clusters/airflow/airflow.cfg:/opt/airflow/airflow.cfg
+    depends_on:
+      - mysql
+      - airflow-webserver
+    networks:
+      - ml_training_network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  # PyTorch Distributed Training
+  pytorch-master:
+    image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+    container_name: ml-pytorch-master
+    ports:
+      - "29500:29500"
+    environment:
+      - MASTER_ADDR=ml-pytorch-master
+      - MASTER_PORT=29500
+      - WORLD_SIZE=3
+      - NODE_RANK=0
+      - NCCL_DEBUG=INFO
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/pytorch:/workspace
+      - ${PWD}/databases/vector-stores/milvus/data:/training_data/vectors
+      - ${PWD}/databases/vector-stores/qdrant/storage:/training_data/qdrant
+      - /mnt/deeparchive/models:/models
+    command: sleep infinity
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: '4.0'
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - ml_training_network
+      - vector_store_network
+      - global_network
+
+  pytorch-worker-1:
+    image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+    container_name: ml-pytorch-worker-1
+    environment:
+      - MASTER_ADDR=ml-pytorch-master
+      - MASTER_PORT=29500
+      - WORLD_SIZE=3
+      - NODE_RANK=1
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/pytorch:/workspace
+    depends_on:
+      - pytorch-master
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: '4.0'
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - ml_training_network
+
+  pytorch-worker-2:
+    image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime
+    container_name: ml-pytorch-worker-2
+    environment:
+      - MASTER_ADDR=ml-pytorch-master
+      - MASTER_PORT=29500
+      - WORLD_SIZE=3
+      - NODE_RANK=2
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/pytorch:/workspace
+    depends_on:
+      - pytorch-master
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: '4.0'
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - ml_training_network
+
+  # Ray for distributed computing
+  ray-head:
+    image: rayproject/ray:2.5.1-py310
+    container_name: ml-ray-head
+    ports:
+      - "8265:8265"  # Ray dashboard
+      - "10001:10001"  # Ray client server
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/ray:/home/ray/workdir
+    command: >
+      ray start --head --dashboard-host=0.0.0.0 --block --dashboard-port=8265
+    networks:
+      - ml_training_network
+      - global_network
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+
+  ray-worker-1:
+    image: rayproject/ray:2.5.1-py310
+    container_name: ml-ray-worker-1
+    volumes:
+      - ${PWD}/ml-infrastructure/training-clusters/ray:/home/ray/workdir
+    command: >
+      ray start --address=ml-ray-head:6379 --block
+    depends_on:
+      - ray-head
+    networks:
+      - ml_training_network
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+
+  # Training Metrics Exporter
+  training-metrics-exporter:
+    image: prom/pushgateway:latest
+    container_name: ml-training-metrics
+    ports:
+      - "9092:9091"
+    networks:
+      - ml_training_network
+      - monitoring_network
+    volumes:
+      - training_metrics_data:/metrics
+    restart: unless-stopped
+
+volumes:
+  training_metrics_data:
+    driver: local
+
+networks:
+  ml_training_network:
+    name: ml_training_network
+    driver: bridge
+  global_network:
+    external: true
+  monitoring_network:
+    external: true
+  vector_store_network:
+    external: true
+

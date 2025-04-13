@@ -1,0 +1,15 @@
+﻿{
+    "state_management": {
+        "default_manager": "sqlite",
+        "sqlite": {
+            "db_path": "data/alerts/alert_state.db",
+            "backup_path": "data/alerts/backups",
+            "backup_interval": 86400,
+            "max_history_days": 30
+        },
+        "memory": {
+            "max_history_size": 1000,
+            "cleanup_interval": 3600
+        }
+    }
+}

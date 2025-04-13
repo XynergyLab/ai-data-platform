@@ -1,0 +1,46 @@
+﻿{
+    "org": "aiorg",
+    "bucket": "aimetrics",
+    "retention": "30d",
+    "measurements": {
+        "file_processing": {
+            "tags": [
+                "file_id",
+                "priority",
+                "file_name",
+                "status",
+                "dewey_decimal"
+            ],
+            "fields": [
+                "path",
+                "size",
+                "processing_time_ms",
+                "error"
+            ]
+        },
+        "api_metrics": {
+            "tags": [
+                "endpoint",
+                "model",
+                "status"
+            ],
+            "fields": [
+                "response_time_ms",
+                "tokens",
+                "error_count"
+            ]
+        },
+        "system_metrics": {
+            "tags": [
+                "service",
+                "host"
+            ],
+            "fields": [
+                "cpu_usage",
+                "memory_usage",
+                "disk_usage",
+                "queue_size"
+            ]
+        }
+    }
+}

@@ -1,0 +1,51 @@
+﻿{
+    "collections": {
+        "processed_files": {
+            "indexes": [
+                {
+                    "key": {"file_id": 1},
+                    "unique": true
+                },
+                {
+                    "key": {"dewey_decimal": 1}
+                },
+                {
+                    "key": {"created_at": 1}
+                },
+                {
+                    "key": {"md5_hash": 1}
+                }
+            ],
+            "validationSchema": {
+                "bsonType": "object",
+                "required": ["file_id", "dewey_decimal", "file_name", "mime_type"],
+                "properties": {
+                    "file_id": {"bsonType": "string"},
+                    "dewey_decimal": {"bsonType": "string"},
+                    "file_name": {"bsonType": "string"},
+                    "mime_type": {"bsonType": "string"},
+                    "file_size": {"bsonType": "long"},
+                    "md5_hash": {"bsonType": "string"},
+                    "created_at": {"bsonType": "date"},
+                    "modified_at": {"bsonType": "date"},
+                    "tags": {
+                        "bsonType": "array",
+                        "items": {"bsonType": "string"}
+                    },
+                    "categories": {
+                        "bsonType": "array",
+                        "items": {"bsonType": "string"}
+                    },
+                    "metadata": {"bsonType": "object"}
+                }
+            }
+        },
+        "processing_queue": {
+            "indexes": [
+                {
+                    "key": {"status": 1, "priority": 1, "created_at": 1}
+                }
+            ]
+        }
+    }
+}

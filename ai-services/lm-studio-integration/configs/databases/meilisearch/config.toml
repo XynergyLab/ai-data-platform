@@ -1,0 +1,22 @@
+
+# Meilisearch Configuration
+
+# Server configuration
+env = "production"
+db_path = "/data.ms"
+http_addr = "0.0.0.0:7700"
+master_key = "your_secure_meilisearch_key"
+
+# Dumps
+dump_dir = "/dumps"
+
+# Index limits - suitable for larger datasets
+max_index_size = "100 GB"
+
+# Indexing configuration for AI processing
+indexer_options.memory_limit = "2 GB"
+indexer_options.max_parallel_operations = 4
+
+# Search configuration
+log_level = "INFO"
+

@@ -1,0 +1,39 @@
+﻿{
+    "dbms.memory.heap.initial_size": "1G",
+    "dbms.memory.heap.max_size": "2G",
+    "dbms.memory.pagecache.size": "1G",
+    "db.constraints": [
+        "CREATE CONSTRAINT IF NOT EXISTS FOR (f:File) REQUIRE f.id IS UNIQUE",
+        "CREATE CONSTRAINT IF NOT EXISTS FOR (t:Tag) REQUIRE t.name IS UNIQUE",
+        "CREATE CONSTRAINT IF NOT EXISTS FOR (c:Category) REQUIRE c.name IS UNIQUE",
+        "CREATE CONSTRAINT IF NOT EXISTS FOR (e:Entity) REQUIRE (e.name, e.type) IS UNIQUE"
+    ],
+    "db.indexes": [
+        "CREATE INDEX IF NOT EXISTS FOR (f:File) ON (f.dewey_decimal)",
+        "CREATE INDEX IF NOT EXISTS FOR (f:File) ON (f.mime_type)",
+        "CREATE INDEX IF NOT EXISTS FOR (t:Tag) ON (t.name)",
+        "CREATE INDEX IF NOT EXISTS FOR (e:Entity) ON (e.type)"
+    ],
+    "relationships": {
+        "TAGGED": {
+            "from": "File",
+            "to": "Tag",
+            "properties": ["confidence", "created_at"]
+        },
+        "BELONGS_TO": {
+            "from": "File",
+            "to": "Category",
+            "properties": ["confidence", "created_at"]
+        },
+        "MENTIONS": {
+            "from": "File",
+            "to": "Entity",
+            "properties": ["confidence", "context", "created_at"]
+        },
+        "RELATED_TO": {
+            "from": "File",
+            "to": "File",
+            "properties": ["similarity_score", "relationship_type", "created_at"]
+        }
+    }
+}

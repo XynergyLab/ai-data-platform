@@ -1,0 +1,76 @@
+﻿{
+    "host": "postgres",
+    "port": 5432,
+    "database": "aiplatform",
+    "schema_init": [
+        {
+            "name": "metadata",
+            "tables": {
+                "files": """
+                    CREATE TABLE IF NOT EXISTS metadata.files (
+                        id SERIAL PRIMARY KEY,
+                        dewey_decimal VARCHAR(10) NOT NULL,
+                        file_name VARCHAR(255) NOT NULL,
+                        file_path TEXT NOT NULL,
+                        file_type VARCHAR(50),
+                        file_size BIGINT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        CONSTRAINT dewey_format CHECK (dewey_decimal ~ '^\\d{3}(\\.\\d{1,2})?$')
+                    )
+                """,
+                "tags": """
+                    CREATE TABLE IF NOT EXISTS metadata.tags (
+                        id SERIAL PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        category VARCHAR(50) NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(name, category)
+                    )
+                """,
+                "file_tags": """
+                    CREATE TABLE IF NOT EXISTS metadata.file_tags (
+                        file_id INTEGER REFERENCES metadata.files(id),
+                        tag_id INTEGER REFERENCES metadata.tags(id),
+                        confidence FLOAT DEFAULT 1.0,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (file_id, tag_id)
+                    )
+                """
+            }
+        },
+        {
+            "name": "indexes",
+            "tables": {
+                "dewey_catalog": """
+                    CREATE TABLE IF NOT EXISTS indexes.dewey_catalog (
+                        dewey_decimal VARCHAR(10) PRIMARY KEY,
+                        category VARCHAR(100) NOT NULL,
+                        description TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """,
+                "vector_locations": """
+                    CREATE TABLE IF NOT EXISTS indexes.vector_locations (
+                        id SERIAL PRIMARY KEY,
+                        file_id INTEGER REFERENCES metadata.files(id),
+                        vector_store VARCHAR(50) NOT NULL,
+                        vector_id VARCHAR(100) NOT NULL,
+                        embedding_model VARCHAR(100),
+                        dimensions INTEGER,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(file_id, vector_store)
+                    )
+                """
+            }
+        }
+    ],
+    "indexes": [
+        "CREATE INDEX IF NOT EXISTS idx_files_dewey ON metadata.files(dewey_decimal)",
+        "CREATE INDEX IF NOT EXISTS idx_files_name ON metadata.files(file_name)",
+        "CREATE INDEX IF NOT EXISTS idx_files_type ON metadata.files(file_type)",
+        "CREATE INDEX IF NOT EXISTS idx_tags_name ON metadata.tags(name)",
+        "CREATE INDEX IF NOT EXISTS idx_tags_category ON metadata.tags(category)"
+    ]
+}

@@ -1,0 +1,105 @@
+﻿{
+    "collectors": {
+        "queue": {
+            "enabled": true,
+            "interval": 30,
+            "metrics": [
+                {
+                    "name": "queue_size",
+                    "type": "gauge",
+                    "labels": ["queue_name", "priority"],
+                    "description": "Current size of processing queues"
+                },
+                {
+                    "name": "processing_rate",
+                    "type": "gauge",
+                    "labels": ["queue_name", "priority"],
+                    "description": "Items processed per minute"
+                },
+                {
+                    "name": "wait_time",
+                    "type": "histogram",
+                    "labels": ["queue_name", "priority"],
+                    "description": "Time items spend in queue",
+                    "buckets": [30, 60, 300, 600, 1800, 3600]
+                }
+            ],
+            "queues": {
+                "ingestion": {
+                    "high_priority": "/pipelines/ingestion/high-priority",
+                    "medium_priority": "/pipelines/ingestion/medium-priority",
+                    "low_priority": "/pipelines/ingestion/low-priority"
+                },
+                "processing": {
+                    "embeddings_staging": "/pipelines/queues/embeddings/staging",
+                    "embeddings_processing": "/pipelines/queues/embeddings/processing",
+                    "raw_batch": "/pipelines/queues/raw/batch-processing",
+                    "raw_stream": "/pipelines/queues/raw/streaming",
+                    "raw_priority": "/pipelines/queues/raw/priority-processing",
+                    "raw_normal": "/pipelines/queues/raw/normal-processing"
+                }
+            }
+        },
+        "system": {
+            "enabled": true,
+            "interval": 60,
+            "metrics": [
+                {
+                    "name": "cpu_usage",
+                    "type": "gauge",
+                    "labels": ["cpu_type"],
+                    "description": "CPU usage percentage"
+                },
+                {
+                    "name": "memory_usage",
+                    "type": "gauge",
+                    "labels": ["memory_type"],
+                    "description": "Memory usage in bytes"
+                },
+                {
+                    "name": "disk_usage",
+                    "type": "gauge",
+                    "labels": ["mount_point"],
+                    "description": "Disk usage percentage"
+                },
+                {
+                    "name": "network_io",
+                    "type": "counter",
+                    "labels": ["interface", "direction"],
+                    "description": "Network I/O bytes"
+                }
+            ]
+        },
+        "pipeline": {
+            "enabled": true,
+            "interval": 30,
+            "metrics": [
+                {
+                    "name": "processing_time",
+                    "type": "histogram",
+                    "labels": ["processor_type", "file_type"],
+                    "description": "Time taken to process items",
+                    "buckets": [0.1, 0.5, 1.0, 2.0, 5.0, 10.0]
+                },
+                {
+                    "name": "success_rate",
+                    "type": "gauge",
+                    "labels": ["processor_type"],
+                    "description": "Processing success rate"
+                },
+                {
+                    "name": "error_rate",
+                    "type": "gauge",
+                    "labels": ["processor_type", "error_type"],
+                    "description": "Processing error rate"
+                },
+                {
+                    "name": "throughput",
+                    "type": "counter",
+                    "labels": ["processor_type"],
+                    "description": "Items processed per second"
+                }
+            ]
+        }
+    }
+}

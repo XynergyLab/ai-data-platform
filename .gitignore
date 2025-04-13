@@ -1,0 +1,217 @@
+# Machine Learning Infrastructure Project .gitignore
+
+# ==============================
+# Environment-specific files
+# ==============================
+.env
+.env.*
+!.env.example
+.venv/
+env/
+venv/
+ENV/
+*.env
+.python-version
+
+# ==============================
+# Sensitive information
+# ==============================
+**/credentials/
+**/secrets/
+**/*_key.json
+**/*_credentials.json
+**/*.pem
+**/*.key
+**/*.cert
+**/secrets.yaml
+**/secrets.yml
+**/passwords.txt
+**/tokens.txt
+**/*.password
+
+# ==============================
+# Large data files & models
+# ==============================
+**/data/
+**/datasets/
+**/raw_data/
+**/processed_data/
+**/models/
+**/*.h5
+**/*.onnx
+**/*.pt
+**/*.pth
+**/*.pkl
+**/*.joblib
+**/*.bin
+**/*.npy
+**/*.npz
+**/*.parquet
+**/*.feather
+**/*.pickle
+**/*.model
+**/*.saved_model/
+**/checkpoints/
+
+# Allow model config files
+!**/models/*/config.pbtxt
+!**/models/*/labels.txt
+
+# ==============================
+# Logs and temporary files
+# ==============================
+**/logs/
+**/*.log
+**/log/
+**/tmp/
+**/temp/
+**/.ipynb_checkpoints/
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
+**/build/
+**/dist/
+**/.pytest_cache/
+**/htmlcov/
+**/.coverage
+**/.coverage.*
+**/coverage.xml
+**/*.cover
+**/.hypothesis/
+
+# ==============================
+# IDE and editor specific
+# ==============================
+**/.idea/
+**/.vscode/
+**/*.swp
+**/*.swo
+**/*.swn
+**/*.sublime-workspace
+**/*.sublime-project
+**/.DS_Store
+**/.~lock.*
+**/Thumbs.db
+**/.history/
+**/*.code-workspace
+
+# ==============================
+# Python-specific
+# ==============================
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+**/*.so
+**/eggs/
+**/.eggs/
+**/*.egg-info/
+**/*.egg
+**/MANIFEST
+**/.nox/
+**/.ropeproject/
+**/.ipynb_checkpoints
+**/.python-version
+**/.mypy_cache/
+**/.pyre/
+**/.pytype/
+**/__pypackages__/
+
+# ==============================
+# Container-related
+# ==============================
+**/.podman/
+**/.docker/
+**/*.swp
+**/*.swo
+**/*.swn
+**/data-volumes/
+**/container_data/
+**/volumes/
+**/containerdata/
+**/*.socket
+**/podman-compose.override.yml
+**/docker-compose.override.yml
+**/podman-compose.override.yaml
+**/docker-compose.override.yaml
+**/Dockerfile.dev
+
+# Allow template and example Dockerfiles
+!**/Dockerfile.template
+!**/Dockerfile.example
+
+# ==============================
+# ML infrastructure specific
+# ==============================
+**/mlruns/
+**/artifacts/
+**/wandb/
+**/runs/
+**/lightning_logs/
+**/outputs/
+**/checkpoints/
+**/embeddings/
+**/tensorboard/
+**/predictions/
+**/results/
+**/experiments/
+
+# ==============================
+# Vector database specific
+# ==============================
+**/milvus/data/
+**/qdrant/storage/
+**/vector_databases/
+
+# ==============================
+# Specific to this project
+# ==============================
+# Exclude volume mount content directories
+**/model-serving/models/*
+**/training-clusters/mlflow/*
+**/training-clusters/artifacts/*
+**/monitoring/grafana/dashboards/ml/performance/*
+**/monitoring/prometheus/data/*
+
+# Keep the directory structure
+!**/model-serving/models/.gitkeep
+!**/training-clusters/mlflow/.gitkeep
+!**/training-clusters/artifacts/.gitkeep
+!**/monitoring/grafana/dashboards/ml/performance/.gitkeep
+!**/monitoring/prometheus/data/.gitkeep
+
+# ==============================
+# Allow important config files
+# ==============================
+# Keep all .yaml compose files
+!**/podman-compose.yaml
+!**/global-compose.yaml
+!**/*-compose.yaml
+
+# Keep config files
+!**/config/
+!**/config/**/*.yaml
+!**/config/**/*.yml
+!**/config/**/*.json
+!**/config/**/*.conf
+!**/config/**/*.properties
+
+# ==============================
+# Operating system specific
+# ==============================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Linux
+.directory
+.Trash-*
+
